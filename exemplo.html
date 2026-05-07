@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agendamento de Laboratórios | EAPs</title>
+  <style>
+    :root {
+      --azul-ucb: #003b5c;
+      --azul-ucb-2: #005f8f;
+      --azul-claro: #e8f3f8;
+      --dourado: #c9a227;
+      --fundo: #f4f6f8;
+      --borda: #d9e1e7;
+      --texto: #344054;
+      --muted: #667085;
+      --branco: #ffffff;
+      --verde: #107c41;
+      --amarelo: #f2c94c;
+      --laranja: #d9822b;
+      --vermelho: #c0392b;
+      --roxo: #6b21a8;
+      --sombra: 0 10px 24px rgba(0, 59, 92, 0.10);
+      --raio: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--fundo);
+      color: var(--texto);
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--azul-ucb), var(--azul-ucb-2));
+      color: var(--branco);
+      padding: 18px 34px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      box-shadow: 0 4px 14px rgba(0,0,0,.18);
+    }
+
+    .brand-area { display: flex; align-items: center; gap: 16px; }
+
+    .logo-box {
+      width: 92px;
+      height: 78px;
+      border-radius: 16px;
+      background: var(--branco);
+      border: 3px solid var(--dourado);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.16);
+      overflow: hidden;
+    }
+
+    .logo-box img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .system-title h1 { margin: 0; font-size: 26px; font-weight: 800; }
+    .system-title p { margin: 5px 0 0; font-size: 14px; opacity: .92; }
+
+    .client-badge {
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.24);
+      border-radius: 999px;
+      padding: 10px 18px;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    main {
+      max-width: 1366px;
+      margin: 0 auto;
+      padding: 26px 34px 18px;
+      min-height: calc(100vh - 150px);
+    }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      padding: 16px 24px 22px;
+    }
+
+    .screen { display: none; animation: fadeIn .22s ease-in-out; }
+    .screen.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .page-header h2 { color: var(--azul-ucb); margin: 0; font-size: 26px; }
+    .page-header p { margin: 6px 0 0; color: var(--muted); max-width: 820px; line-height: 1.45; }
+
+    .card {
+      background: var(--branco);
+      border: 1px solid var(--borda);
+      border-radius: var(--raio);
+      padding: 20px;
+      box-shadow: var(--sombra);
+    }
+
+    .card h3 { margin: 0 0 8px; color: var(--azul-ucb); font-size: 19px; }
+    .card p { margin: 0 0 14px; color: var(--muted); line-height: 1.45; }
+
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 18px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 18px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 15px; }
+    .stack { display: grid; gap: 16px; }
+
+    .btn {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: .16s ease;
+      font-size: 14px;
+    }
+    .btn:hover { transform: translateY(-1px); filter: brightness(1.02); }
+    .btn-primary { background: var(--azul-ucb); color: var(--branco); }
+    .btn-secondary { background: var(--azul-claro); color: var(--azul-ucb); border: 1px solid #b8d4e3; }
+    .btn-warning { background: #fff4cc; color: #6b5000; border: 1px solid #f5da80; }
+    .btn-danger { background: #fdecea; color: var(--vermelho); border: 1px solid #f4b5ad; }
+    .btn-ghost { background: #fff; color: var(--azul-ucb); border: 1px solid var(--borda); }
+
+    .actions-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+    .login-wrap {
+      min-height: 560px;
+      display: grid;
+      place-items: center;
+    }
+
+    .login-card {
+      width: min(920px, 100%);
+      text-align: center;
+      padding: 34px;
+    }
+
+    .login-buttons {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap: 18px;
+      margin-top: 28px;
+    }
+
+    .profile-line {
+      display: grid;
+      grid-template-columns: 130px 1fr;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid #edf2f5;
+      font-size: 14px;
+    }
+    .profile-line:last-child { border-bottom: 0; }
+    .profile-line strong { color: var(--muted); }
+
+    .metric { font-size: 34px; font-weight: 900; color: var(--azul-ucb); margin: 8px 0 2px; }
+    .metric-label { color: var(--muted); font-size: 13px; }
+
+    .calendar-card {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0,1fr));
+      gap: 8px;
+    }
+
+    .calendar-day, .calendar-head {
+      border-radius: 12px;
+      padding: 10px;
+      min-height: 70px;
+      background: #fff;
+      border: 1px solid var(--borda);
+      font-size: 13px;
+    }
+    .calendar-head { min-height: auto; background: var(--azul-claro); color: var(--azul-ucb); font-weight: 900; text-align: center; }
+    .calendar-day.muted { opacity: .45; background: #f9fafb; }
+    .calendar-day.has { border-color: var(--azul-ucb-2); box-shadow: inset 0 0 0 2px rgba(0,95,143,.10); }
+    .day-num { font-weight: 900; color: var(--azul-ucb); }
+    .day-dot { display: inline-flex; margin-top: 8px; background: var(--dourado); color: #3b2d00; border-radius: 999px; width: 24px; height: 24px; align-items: center; justify-content: center; font-size: 12px; font-weight: 900; }
+
+    .form-card { background: var(--branco); border: 1px solid var(--borda); border-radius: var(--raio); box-shadow: var(--sombra); overflow: hidden; }
+    .form-section { padding: 20px 22px; border-bottom: 1px solid var(--borda); }
+    .form-section:last-child { border-bottom: none; }
+    .form-section h3 { margin: 0 0 16px; color: var(--azul-ucb); font-size: 18px; display: flex; align-items: center; gap: 8px; }
+    .section-number { background: var(--azul-ucb); color: #fff; width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 900; }
+
+    .field { display: flex; flex-direction: column; gap: 7px; }
+    .field.full { grid-column: 1 / -1; }
+    label { font-size: 13px; font-weight: 800; color: #475467; }
+    input, select, textarea {
+      width: 100%; border: 1px solid var(--borda); border-radius: 11px; padding: 12px; font-size: 14px; background: #fff; color: #243547; outline: none;
+    }
+    textarea { resize: vertical; min-height: 92px; }
+    input:focus, select:focus, textarea:focus { border-color: var(--azul-ucb-2); box-shadow: 0 0 0 3px rgba(0,95,143,.12); }
+
+    .choice-box {
+      border: 1px solid var(--borda);
+      background: #f8fafc;
+      border-radius: 14px;
+      padding: 14px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .choice-box input { width: auto; transform: scale(1.15); }
+
+    .status-tabs { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+    .status-tab { background: #fff; border: 1px solid var(--borda); color: var(--azul-ucb); border-radius: 999px; padding: 10px 14px; font-weight: 900; cursor: pointer; }
+    .status-tab.active { background: var(--azul-ucb); color: #fff; }
+
+    .agenda-list { display: grid; gap: 14px; }
+    .agenda-card { background: #fff; border: 1px solid var(--borda); border-radius: var(--raio); padding: 18px; display: grid; grid-template-columns: 1.4fr .8fr auto; gap: 18px; align-items: center; box-shadow: var(--sombra); }
+    .agenda-card h3 { margin: 0 0 8px; color: var(--azul-ucb); }
+    .agenda-card p { margin: 4px 0; color: var(--muted); font-size: 14px; }
+
+    .status { display: inline-flex; align-items: center; justify-content: center; border-radius: 999px; padding: 8px 12px; font-size: 12px; font-weight: 900; white-space: nowrap; }
+    .status.aguardando { background: #fff6d6; color: #7a5a00; }
+    .status.aprovado { background: #e7f6ec; color: var(--verde); }
+    .status.cancelado { background: #fdecea; color: var(--vermelho); }
+
+    .lab-list { display: grid; gap: 10px; }
+    .lab-option {
+      border: 1px solid var(--borda);
+      border-radius: 14px;
+      padding: 12px;
+      background: #fff;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      cursor: pointer;
+    }
+    .lab-option input { width: auto; margin-top: 2px; }
+    .lab-option.selected { border-color: var(--azul-ucb); background: var(--azul-claro); }
+
+    .month-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 12px; flex-wrap: wrap; }
+
+    .date-filter-panel {
+      background: #fff;
+      border: 1px solid var(--borda);
+      border-radius: var(--raio);
+      padding: 16px;
+      box-shadow: var(--sombra);
+      margin-bottom: 16px;
+    }
+
+    .day-scheduler { display: grid; grid-template-columns: 320px 1fr; gap: 18px; }
+    .mini-calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+    .mini-day { border: 1px solid var(--borda); border-radius: 10px; padding: 9px 6px; text-align: center; background: #fff; cursor: pointer; font-weight: 800; color: var(--azul-ucb); }
+    .mini-day.disabled { opacity: .35; cursor: not-allowed; background: #f3f4f6; color: #98a2b3; }
+    .mini-day.selected { background: var(--azul-ucb); color: #fff; }
+    .mini-day.has-blocked { border-color: var(--dourado); }
+
+    .turno-box { background: #fff; border: 1px solid var(--borda); border-radius: var(--raio); padding: 16px; margin-bottom: 14px; }
+    .turno-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
+    .turno-head h3 { margin: 0; color: var(--azul-ucb); }
+    .time-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; }
+    .time-slot { border: 1px solid var(--borda); border-radius: 12px; padding: 12px; display: flex; gap: 9px; align-items: center; background: #f8fafc; font-weight: 800; }
+    .time-slot input { width: auto; }
+
+    .materials-grid { display: grid; grid-template-columns: 310px 1fr; gap: 18px; }
+    .material-panel { background: #fff; border: 1px solid var(--borda); border-radius: var(--raio); padding: 18px; box-shadow: var(--sombra); }
+    .material-panel h3 { margin-top: 0; color: var(--azul-ucb); }
+    .material-added { display: grid; gap: 10px; }
+    .material-item { background: #f8fafc; border: 1px solid var(--borda); border-radius: 14px; padding: 12px; display: grid; grid-template-columns: 1fr auto; gap: 12px; }
+    .material-item strong { color: var(--azul-ucb); }
+    .material-item p { margin: 4px 0 0; color: var(--muted); font-size: 13px; }
+
+    .summary-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
+    .summary-item { background: #fff; border: 1px solid #e5edf2; padding: 12px; border-radius: 14px; }
+    .summary-item strong { display: block; color: var(--muted); font-size: 12px; margin-bottom: 4px; }
+    .summary-item span { color: var(--azul-ucb); font-weight: 900; }
+
+    .success-icon { width: 76px; height: 76px; border-radius: 50%; background: #e7f6ec; color: var(--verde); display: flex; align-items: center; justify-content: center; font-size: 42px; margin-bottom: 14px; }
+    .toast { position: fixed; right: 24px; bottom: 24px; background: var(--azul-ucb); color: white; padding: 14px 18px; border-radius: 14px; box-shadow: 0 12px 28px rgba(0,0,0,.20); display: none; z-index: 10; font-weight: 800; }
+    .hidden { display: none !important; }
+
+    @media print {
+      header, footer, .page-header .actions-row, .status-tabs, .no-print, .btn { display: none !important; }
+      main { padding: 0; }
+      .screen { display: none !important; }
+      #verAgendamentos { display: block !important; }
+      .agenda-card { box-shadow: none; page-break-inside: avoid; }
+    }
+
+    @media (max-width: 980px) {
+      header, .page-header { flex-direction: column; align-items: flex-start; }
+      .grid-3, .grid-2, .grid-4, .login-buttons, .agenda-card, .day-scheduler, .materials-grid, .summary-grid { grid-template-columns: 1fr; }
+      .time-grid { grid-template-columns: 1fr 1fr; }
+      .client-badge { white-space: normal; }
+    }
+  </style>
+</head><body><header>
+<div class="brand-area">
+<div class="logo-box" aria-label="Logotipo da Universidade Católica de Brasília"><img src="https://iconape.com/wp-content/files/px/195963/svg/195963.svg" alt="Universidade Católica de Brasília" onerror="this.outerHTML='&lt;div style=&quot;color:#003b5c;font-weight:900;text-align:center;line-height:1.05&quot;&gt;UCB&lt;br&gt;&lt;small&gt;Universidade Católica de Brasília&lt;/small&gt;&lt;/div&gt;'"></div>
+<div class="system-title">
+<h1>Agendamento de Laboratórios</h1>
+<p>Cliente: EAPs — Espaços de Aprendizagem Prática</p>
+</div>
+</div>
+<div class="client-badge">Protótipo visual | Fluxo do professor</div>
+</header><main>
+<section id="login" class="screen active">
+<div class="login-wrap">
+<div class="card login-card">
+<h2 style="color: var(--azul-ucb); margin: 0; font-size: 30px;">Acesso ao sistema</h2>
+<p style="margin-top: 10px;">Selecione o perfil de acesso. Nesta simulação, somente o fluxo do professor está funcional.</p>
+<div class="login-buttons"><button class="btn btn-primary" onclick="showScreen('painelProfessor')">Professor</button> <button class="btn btn-secondary" onclick="perfilBloqueado('Técnico')">Técnico</button> <button class="btn btn-secondary" onclick="perfilBloqueado('Gestão')">Gestão</button></div>
+</div>
+</div>
+</section>
+<section id="painelProfessor" class="screen">
+<div class="page-header">
+<div>
+<h2>Painel do Professor</h2>
+<p>Visão geral do cadastro, atalhos de agendamento e calendário mensal com reservas e informações acadêmicas relevantes.</p>
+</div>
+<div class="actions-row no-print"><button class="btn btn-ghost" onclick="showScreen('login')">Sair</button></div>
+</div>
+<div class="grid-3" style="margin-bottom: 18px;">
+<div class="card">
+<h3>Informações do cadastro</h3>
+<div class="profile-line"><strong>Nome</strong><span>Prof. Arly Alves</span></div>
+<div class="profile-line"><strong>Matrícula</strong><span>123456</span></div>
+<div class="profile-line"><strong>E-mail</strong><span>arly.alves@ucb.br</span></div>
+<div class="profile-line"><strong>Unidade</strong><span>UCB | Campus Taguatinga</span></div>
+</div>
+<div class="card">
+<h3>Agendamentos do mês</h3>
+<div class="metric" id="metricMes">0</div>
+<div class="metric-label">registros simulados para o mês atual</div>
+<div class="actions-row" style="margin-top: 18px;"><button class="btn btn-secondary" onclick="abrirAgendamentosDoMesPainel()">Ver agendamentos</button></div>
+</div>
+<div class="card">
+<h3>Solicitar laboratório</h3>
+<p>Inicie uma nova solicitação informando curso, laboratório, disciplina, data, horários e materiais.</p>
+<button class="btn btn-primary" onclick="iniciarNovaSolicitacao()">Solicitar agendamento</button></div>
+</div>
+<div class="grid-2">
+<div class="card">
+<div class="month-toolbar"><button class="btn btn-secondary" onclick="mudarMesPainel(-1)">◀</button>
+<h3 id="mesPainelLabel" style="margin: 0;">Calendário mensal</h3>
+<button class="btn btn-secondary" onclick="mudarMesPainel(1)">▶</button></div>
+<div style="margin-bottom: 12px;"><span class="status aguardando">Semana de provas: laboratórios de informática com alta demanda</span></div>
+<div id="calendarPainel" class="calendar-card"></div>
+</div>
+<div class="card">
+<h3>Informações globais</h3>
+<p><strong>Semana de provas:</strong> laboratórios de informática podem ter bloqueios institucionais.</p>
+<p><strong>Sábado:</strong> disponível apenas no turno matutino.</p>
+<p><strong>Domingo:</strong> indisponível para agendamentos.</p>
+<p><strong>Solicitações com materiais:</strong> entram como aguardando aprovação técnica.</p>
+</div>
+</div>
+</section>
+<section id="verAgendamentos" class="screen">
+<div class="page-header">
+<div>
+<h2>Meus agendamentos</h2>
+<p>Lista de agendamentos por status. É possível cancelar solicitações pendentes/aprovadas e imprimir a lista mensal.</p>
+</div>
+<div class="actions-row no-print"><button class="btn btn-secondary" onclick="showScreen('painelProfessor')">Voltar</button> <button class="btn btn-primary" onclick="iniciarNovaSolicitacao()">Solicitar agendamento</button> <button class="btn btn-warning" onclick="window.print()">Imprimir visualização atual</button></div>
+</div>
+<div class="status-tabs no-print"><button class="status-tab active" data-status="Todos" onclick="setFiltroStatus('Todos')">Todos</button> <button class="status-tab" data-status="Cancelado" onclick="setFiltroStatus('Cancelado')">Cancelados</button> <button class="status-tab" data-status="Aguardando aprovação" onclick="setFiltroStatus('Aguardando aprovação')">Aguardando aprovação</button> <button class="status-tab" data-status="Aprovado" onclick="setFiltroStatus('Aprovado')">Aprovados</button></div>
+<div class="date-filter-panel no-print">
+<div class="grid-4">
+<div class="field"><label for="tipoPeriodoAgendamento">Período de visualização</label><select id="tipoPeriodoAgendamento" onchange="atualizarFiltroPeriodoAgendamentos()">
+<option value="mesAtual">Mês atual</option>
+<option value="mesPainel">Mês selecionado no painel</option>
+<option value="intervalo">Intervalo personalizado</option>
+<option value="todos">Todas as datas</option>
+</select></div>
+<div class="field" id="dataInicioFiltroArea"><label for="dataInicioFiltro">Data inicial</label> <input id="dataInicioFiltro" type="date" onchange="renderAgendamentos()"></div>
+<div class="field" id="dataFimFiltroArea"><label for="dataFimFiltro">Data final</label> <input id="dataFimFiltro" type="date" onchange="renderAgendamentos()"></div>
+<div class="field"><label>&nbsp;</label> <button class="btn btn-secondary" onclick="limparPeriodoAgendamentos()">Limpar período</button></div>
+</div>
+</div>
+<div id="periodoImpresso" class="card" style="margin-bottom: 16px;"></div>
+<div id="listaAgendamentos" class="agenda-list"></div>
+</section>
+<section id="agendamentoCursoLab" class="screen">
+<div class="page-header">
+<div>
+<h2>Solicitar agendamento</h2>
+<p>Etapa 1 de 4 — escolha curso, laboratório e disciplina. Os laboratórios são exibidos conforme a área de formação do curso selecionado.</p>
+</div>
+<button class="btn btn-secondary" onclick="showScreen('painelProfessor')">Voltar ao painel</button></div>
+<div class="form-card">
+<div class="form-section">
+<h3><span class="section-number">1</span> Curso</h3>
+<div class="grid-2">
+<div class="field"><label for="cursoSelect">Curso</label><select id="cursoSelect" onchange="atualizarLabsPorCurso()"></select></div>
+<div class="field"><label for="areaCursoInfo">Área de referência</label> <input id="areaCursoInfo" type="text" readonly="readonly"></div>
+</div>
+</div>
+<div class="form-section">
+<h3><span class="section-number">2</span> Laboratórios vinculados</h3>
+<p style="color: var(--muted); margin-top: -6px;">Selecione um laboratório sugerido para a área do curso ou marque a opção “Outros laboratórios”.</p>
+<div id="labsVinculados" class="lab-list"></div>
+</div>
+<div class="form-section hidden" id="outrosLabsArea">
+<h3><span class="section-number">3</span> Outros laboratórios</h3>
+<div class="field"><label for="outroLabSelect">Escolha um laboratório fora da vinculação principal do PPC</label><select id="outroLabSelect"></select></div>
+</div>
+<div class="form-section">
+<h3><span class="section-number">4</span> Disciplina</h3>
+<div class="grid-2">
+<div class="field"><label for="disciplinaSelect">Disciplina</label><select id="disciplinaSelect"></select></div>
+<div class="field"><label for="turmaSelect">Turma</label> <input id="turmaSelect" type="text" placeholder="Digite a turma. Ex.: Turma A, FIS-MAT-01, Noturno 2026/1"></div>
+</div>
+</div>
+<div class="form-section">
+<div class="actions-row"><button class="btn btn-secondary" onclick="showScreen('painelProfessor')">Voltar</button> <button class="btn btn-primary" onclick="avancarParaCalendario()">Avançar para calendário</button></div>
+</div>
+</div>
+</section>
+<section id="agendamentoCalendario" class="screen">
+<div class="page-header">
+<div>
+<h2>Escolha data, turno e horários</h2>
+<p>Etapa 2 de 4 — selecione o dia e marque os intervalos disponíveis. Horários ocupados não são exibidos para seleção.</p>
+</div>
+<button class="btn btn-secondary" onclick="showScreen('agendamentoCursoLab')">Voltar</button></div>
+<div class="day-scheduler">
+<div class="card">
+<div class="month-toolbar"><button class="btn btn-secondary" onclick="mudarMes(-1)">◀</button>
+<h3 id="mesCalendario" style="margin: 0; color: var(--azul-ucb);"></h3>
+<button class="btn btn-secondary" onclick="mudarMes(1)">▶</button></div>
+<div id="miniCalendar" class="mini-calendar"></div>
+</div>
+<div class="stack">
+<div class="card">
+<h3 id="diaSelecionadoLabel">Selecione um dia</h3>
+<p id="orientacaoDia">Domingos ficam indisponíveis. Aos sábados, somente o turno matutino aparece.</p>
+</div>
+<div id="turnosContainer"></div>
+<div class="actions-row"><button class="btn btn-secondary" onclick="showScreen('agendamentoCursoLab')">Voltar</button> <button class="btn btn-primary" onclick="avancarParaMateriais()">Confirmar horários</button></div>
+</div>
+</div>
+</section>
+<section id="agendamentoMateriais" class="screen">
+<div class="page-header">
+<div>
+<h2>Materiais necessários</h2>
+<p>Etapa 3 de 4 — informe se haverá necessidade de equipamentos, materiais não consumíveis ou materiais consumíveis.</p>
+</div>
+<button class="btn btn-secondary" onclick="showScreen('agendamentoCalendario')">Voltar</button></div>
+<div class="form-card">
+<div class="form-section">
+<h3><span class="section-number">1</span> A aula necessita de materiais ou equipamentos?</h3>
+<div class="grid-2"><label class="choice-box"><input type="radio" name="precisaMateriais" value="nao" onchange="toggleMateriais(false)"> Não necessita</label> <label class="choice-box"><input type="radio" name="precisaMateriais" value="sim" checked="checked" onchange="toggleMateriais(true)"> Sim, necessita</label></div>
+</div>
+<div id="materiaisArea" class="form-section">
+<h3><span class="section-number">2</span> Adicionar itens</h3>
+<div class="materials-grid">
+<div class="material-panel">
+<div class="field"><label for="tipoMaterial">Tipo de material</label><select id="tipoMaterial" onchange="atualizarFormularioMaterial()">
+<option>Equipamentos</option>
+<option>Materiais não consumíveis</option>
+<option>Materiais consumíveis</option>
+</select></div>
+<div class="field" style="margin-top: 12px;" id="categoriaConsumivelArea"><label for="categoriaConsumivel">Categoria de consumível</label><select id="categoriaConsumivel" onchange="atualizarFormularioMaterial()">
+<option>Alimentos</option>
+<option>Não alimentares</option>
+</select></div>
+<div class="field" style="margin-top: 12px;"><label for="itemMaterial">Item</label><select id="itemMaterial"></select></div>
+<div class="field" style="margin-top: 12px;" id="preparoArea"><label for="necessitaPreparo">Necessita preparo?</label><select id="necessitaPreparo" onchange="togglePreparoDetalhe()">
+<option>Não</option>
+<option>Sim</option>
+</select></div>
+<div class="field hidden" style="margin-top: 12px;" id="detalhePreparoArea"><label for="detalhePreparo">Detalhamento do preparo</label> <textarea id="detalhePreparo" placeholder="Ex.: concentração, massa molar, volume, acondicionamento, higienização, preparo prévio, temperatura etc."></textarea></div>
+<div class="grid-2" style="margin-top: 12px; grid-template-columns: 0.65fr 1.35fr;">
+<div class="field"><label for="quantidadeMaterial">Qtd.</label> <input id="quantidadeMaterial" type="number" min="1" value="1"></div>
+<div class="field" id="unidadeMedidaArea"><label for="unidadeMedida">Medida</label><select id="unidadeMedida">
+<option>unidade(s)</option>
+<option>caixa(s)</option>
+<option>pacote(s)</option>
+<option>frasco(s)</option>
+<option>mL</option>
+<option>L</option>
+<option>g</option>
+<option>kg</option>
+<option>porção(ões)</option>
+</select></div>
+</div>
+<div class="field" style="margin-top: 12px;"><label for="obsMaterial">Observação do item</label> <textarea id="obsMaterial" placeholder="Descreva restrições, finalidade ou observações específicas."></textarea></div>
+<button class="btn btn-primary" style="margin-top: 12px; width: 100%;" onclick="adicionarMaterial()">Adicionar item</button></div>
+<div class="material-panel">
+<h3>Itens adicionados</h3>
+<div id="materiaisAdicionados" class="material-added"></div>
+</div>
+</div>
+</div>
+<div class="form-section">
+<div class="actions-row"><button class="btn btn-secondary" onclick="showScreen('agendamentoCalendario')">Voltar</button> <button class="btn btn-primary" id="btnMateriaisAvancar" onclick="avancarParaConfirmacao()">Avançar para confirmação</button></div>
+</div>
+</div>
+</section>
+<section id="agendamentoConfirmacao" class="screen">
+<div class="page-header">
+<div>
+<h2>Confirmar solicitação</h2>
+<p>Etapa 4 de 4 — revise as informações antes de registrar o pedido de agendamento.</p>
+</div>
+<button class="btn btn-secondary" onclick="showScreen('agendamentoMateriais')">Voltar</button></div>
+<div class="card">
+<h3>Resumo do agendamento</h3>
+<div id="resumoAgendamento" class="summary-grid"></div>
+</div>
+<div class="card" style="margin-top: 16px;">
+<h3>Observações gerais</h3>
+<textarea id="observacoesGerais" placeholder="Inclua observações gerais para o EAPs ou técnico, se necessário."></textarea>
+<p style="margin-top: 14px;"><strong>Informação ao professor:</strong> ao confirmar, o pedido de agendamento será registrado e você receberá um e-mail quando ele for validado. Solicitações com materiais ficam como <strong>Aguardando aprovação</strong> até análise técnica.</p>
+<div class="actions-row" style="margin-top: 18px;"><button class="btn btn-secondary" onclick="showScreen('agendamentoMateriais')">Voltar</button> <button class="btn btn-primary" onclick="finalizarSolicitacao()">Confirmar pedido de agendamento</button></div>
+</div>
+</section>
+</main><footer>© Proreitoria Acadêmica da UCB 2026. Todos os direitos reservados.</footer>
+<div id="toast" class="toast"></div>
+<p><script>
+    const cursos = {
+      "Biomedicina": {
+        ppc: "PPC Biomedicina — laboratórios de análises, microbiologia e bioquímica",
+        labs: ["Laboratório de Bioquímica", "Laboratório de Microbiologia", "Laboratório de Análises Clínicas"],
+        disciplinas: ["Bioquímica", "Microbiologia", "Hematologia", "Parasitologia"]
+      },
+      "Enfermagem": {
+        ppc: "PPC Enfermagem — laboratórios de simulação, anatomia e práticas clínicas",
+        labs: ["Laboratório de Anatomia", "Laboratório de Simulação Realística", "Clínica Escola de Enfermagem"],
+        disciplinas: ["Anatomia Humana", "Semiologia", "Práticas de Enfermagem", "Saúde Coletiva"]
+      },
+      "Fisioterapia": {
+        ppc: "PPC Fisioterapia — clínica escola, anatomia e laboratórios de movimento",
+        labs: ["Laboratório de Anatomia", "Laboratório de Cinesiologia", "Clínica Escola de Fisioterapia"],
+        disciplinas: ["Anatomia Humana", "Cinesiologia", "Recursos Terapêuticos", "Estágio Supervisionado"]
+      },
+      "Nutrição": {
+        ppc: "PPC Nutrição — técnica dietética, alimentos e avaliação nutricional",
+        labs: ["Laboratório de Técnica Dietética", "Laboratório de Avaliação Nutricional"],
+        disciplinas: ["Técnicas Dietéticas", "Bromatologia", "Avaliação Nutricional", "Higiene dos Alimentos"]
+      },
+      "Psicologia": {
+        ppc: "Área de Psicologia — clínica escola e avaliação psicológica",
+        labs: ["Clínica Escola de Psicologia", "Laboratório de Avaliação Psicológica"],
+        disciplinas: ["Avaliação Psicológica", "Psicodiagnóstico", "Práticas Integradas", "Processos Psicológicos"]
+      },
+      "Educação Física": {
+        ppc: "Área de Educação Física — práticas corporais, avaliação e movimento",
+        labs: ["Laboratório de Cinesiologia", "Laboratório de Avaliação Física"],
+        disciplinas: ["Fisiologia do Exercício", "Biomecânica", "Avaliação Física", "Práticas Corporais"]
+      },
+      "Direito": {
+        ppc: "Área de Direito — práticas jurídicas, mediação e simulações processuais",
+        labs: ["Núcleo de Prática Jurídica", "Sala de Mediação e Arbitragem", "Laboratório de Informática"],
+        disciplinas: ["Prática Jurídica Civil", "Prática Jurídica Penal", "Mediação e Arbitragem", "Processo Civil", "Processo Penal"]
+      },
+      "Informática": {
+        ppc: "Área de Informática — laboratórios computacionais e desenvolvimento de sistemas",
+        labs: ["Laboratório de Informática", "Laboratório de Redes", "Laboratório de Desenvolvimento de Software"],
+        disciplinas: ["Algoritmos e Programação", "Banco de Dados", "Redes de Computadores", "Engenharia de Software", "Desenvolvimento Web"]
+      }
+    };
+
+    const todosLabs = [
+      "Laboratório de Anatomia", "Laboratório de Bioquímica", "Laboratório de Microbiologia", "Laboratório de Análises Clínicas", "Laboratório de Simulação Realística", "Clínica Escola de Enfermagem", "Laboratório de Cinesiologia", "Clínica Escola de Fisioterapia", "Laboratório de Técnica Dietética", "Laboratório de Avaliação Nutricional", "Clínica Escola de Psicologia", "Laboratório de Avaliação Psicológica", "Laboratório de Avaliação Física", "Laboratório de Informática", "Núcleo de Prática Jurídica", "Sala de Mediação e Arbitragem", "Laboratório de Redes", "Laboratório de Desenvolvimento de Software"
+    ];
+
+    const turmas = ["Turma A", "Turma B", "Turma C", "Turma Noturno", "Turma Sábado"];
+
+    const materiaisPorTipo = {
+      "Equipamentos": ["Computador móvel", "Microscópio", "Projetor portátil", "Maca móvel", "Modelo anatômico", "Balança antropométrica"],
+      "Materiais não consumíveis": ["Bandeja", "Pinça", "Tesoura", "Avental reutilizável", "Kit de avaliação", "Instrumento de medição"],
+      "Alimentos": ["Frutas", "Leite", "Farinha", "Ovos", "Hortaliças", "Carnes", "Grãos"],
+      "Não alimentares": ["Álcool 70%", "Reagente químico", "Meio de cultura", "Corante", "Solução tampão", "Lâminas", "Luvas descartáveis"]
+    };
+
+    const turnos = {
+      "Manhã": ["06:30-07:10", "07:10-07:50", "07:50-08:30", "08:30-09:10", "09:10-09:50", "09:50-10:30", "10:30-11:10"],
+      "Vespertino": ["12:20-13:00", "13:00-13:40", "13:40-14:20", "14:20-15:00", "15:00-15:40", "15:40-16:20", "16:20-17:00"],
+      "Noturno": ["18:10-18:50", "18:50-19:30", "19:30-20:10", "20:10-20:50"]
+    };
+
+    const ocupadosSimulados = {
+      "2026-05-13": ["08:30-09:10", "09:10-09:50", "18:10-18:50"],
+      "2026-05-14": ["12:20-13:00", "13:00-13:40"],
+      "2026-05-19": ["06:30-07:10", "07:10-07:50", "07:50-08:30"],
+      "2026-05-21": ["18:10-18:50", "18:50-19:30", "19:30-20:10", "20:10-20:50"]
+    };
+
+    let agendamentos = [
+      { id: 1, curso: "Fisioterapia", laboratorio: "Laboratório de Anatomia", disciplina: "Anatomia Humana", turma: "Turma A", data: "2026-05-13", horarios: ["09:50-10:30", "10:30-11:10"], status: "Aguardando aprovação", materiais: true, materiaisLista: ["Luvas descartáveis", "Modelo anatômico"], observacoes: "Necessário preparo de bancada." },
+      { id: 2, curso: "Nutrição", laboratorio: "Laboratório de Técnica Dietética", disciplina: "Técnicas Dietéticas", turma: "Turma B", data: "2026-05-20", horarios: ["14:20-15:00", "15:00-15:40"], status: "Aprovado", materiais: true, materiaisLista: ["Frutas", "Bandeja"], observacoes: "Atividade prática de preparo." },
+      { id: 3, curso: "Psicologia", laboratorio: "Clínica Escola de Psicologia", disciplina: "Avaliação Psicológica", turma: "Turma C", data: "2026-05-22", horarios: ["08:30-09:10"], status: "Cancelado", materiais: false, materiaisLista: [], observacoes: "Cancelado pelo professor." }
+    ];
+
+    let filtroAtual = "Todos";
+    let dataCalendario = new Date(2026, 4, 1);
+    let dataPainel = new Date(2026, 4, 1);
+    let diaSelecionado = null;
+    let selecao = {};
+    let materiaisSelecionados = [];
+    let solicitacaoAtual = {};
+
+    function init() {
+      preencherSelect("cursoSelect", Object.keys(cursos));
+      preencherSelect("outroLabSelect", todosLabs);
+      document.getElementById("turmaSelect").value = "Turma A";
+      atualizarLabsPorCurso();
+      renderPainelCalendar();
+      renderAgendamentos();
+      atualizarMetricas();
+      atualizarFormularioMaterial();
+      renderMateriais();
+    }
+
+    function preencherSelect(id, arr) {
+      const el = document.getElementById(id);
+      el.innerHTML = "";
+      arr.forEach(v => {
+        const opt = document.createElement("option");
+        opt.value = v;
+        opt.textContent = v;
+        el.appendChild(opt);
+      });
+    }
+
+    function showScreen(id) {
+      document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+      document.getElementById(id).classList.add("active");
+      if (id === "painelProfessor") { dataPainel = new Date(getDataBaseAgendamento().getFullYear(), getDataBaseAgendamento().getMonth(), 1); renderPainelCalendar(); atualizarMetricas(); }
+      if (id === "verAgendamentos") { atualizarFiltroPeriodoAgendamentos(); renderAgendamentos(); }
+      if (id === "agendamentoCalendario") renderMiniCalendar();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function perfilBloqueado(perfil) {
+      showToast(`Perfil ${perfil} sem funcionalidade nesta simulação.`);
+    }
+
+    function iniciarNovaSolicitacao() {
+      solicitacaoAtual = {};
+      materiaisSelecionados = [];
+      selecao = {};
+      diaSelecionado = null;
+      document.getElementById("observacoesGerais").value = "";
+      atualizarLabsPorCurso();
+      renderMateriais();
+      showScreen("agendamentoCursoLab");
+    }
+
+    function atualizarMetricas() {
+      document.getElementById("metricMes").textContent = agendamentos.length;
+    }
+
+    function renderPainelCalendar() {
+      const el = document.getElementById("calendarPainel");
+      el.innerHTML = "";
+      document.getElementById("mesPainelLabel").textContent = dataPainel.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+      ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].forEach(d => el.innerHTML += `<div class="calendar-head">${d}</div>`);
+      const year = dataPainel.getFullYear(), month = dataPainel.getMonth();
+      const first = new Date(year, month, 1);
+      const last = new Date(year, month + 1, 0);
+      for (let i = 0; i < first.getDay(); i++) el.innerHTML += `<div class="calendar-day muted"></div>`;
+      for (let day = 1; day <= last.getDate(); day++) {
+        const dateStr = toISO(new Date(year, month, day));
+        const qtd = agendamentos.filter(a => a.data === dateStr && a.status !== "Cancelado").length;
+        el.innerHTML += `<div class="calendar-day ${qtd ? 'has' : ''}"><span class="day-num">${day}</span>${qtd ? `<br><span class="day-dot">${qtd}</span>` : ''}</div>`;
+      }
+    }
+
+    function mudarMesPainel(delta) {
+      dataPainel = new Date(dataPainel.getFullYear(), dataPainel.getMonth() + delta, 1);
+      renderPainelCalendar();
+    }
+
+    function abrirAgendamentosDoMesPainel() {
+      document.getElementById("tipoPeriodoAgendamento").value = "mesPainel";
+      atualizarFiltroPeriodoAgendamentos();
+      showScreen("verAgendamentos");
+    }
+
+    function setFiltroStatus(status) {
+      filtroAtual = status;
+      document.querySelectorAll(".status-tab").forEach(b => b.classList.toggle("active", b.dataset.status === status));
+      renderAgendamentos();
+    }
+
+    function renderAgendamentos() {
+      const list = document.getElementById("listaAgendamentos");
+      const periodo = getPeriodoFiltroAgendamentos();
+      const filtrados = agendamentos.filter(a => {
+        const okStatus = filtroAtual === "Todos" || a.status === filtroAtual;
+        const okData = filtrarPorPeriodo(a.data, periodo);
+        return okStatus && okData;
+      });
+      renderPeriodoImpresso(periodo);
+      list.innerHTML = "";
+      if (!filtrados.length) {
+        list.innerHTML = `<div class="card"><h3>Nenhum agendamento encontrado</h3><p>Não há registros para o status selecionado.</p></div>`;
+        return;
+      }
+      filtrados.forEach(a => {
+        const podeCancelar = a.status !== "Cancelado";
+        list.innerHTML += `
+          <article class="agenda-card">
+            <div>
+              <h3>${a.laboratorio}</h3>
+              <p><strong>Curso:</strong> ${a.curso} | <strong>Disciplina:</strong> ${a.disciplina}</p>
+              <p><strong>Data:</strong> ${formatDate(a.data)} | <strong>Horários:</strong> ${a.horarios.join(", ")}</p>
+            </div>
+            <div><span class="status ${statusClass(a.status)}">${a.status}</span></div>
+            <div class="actions-row no-print">
+              ${podeCancelar ? `<button class="btn btn-danger" onclick="cancelarAgendamento(${a.id})">Cancelar</button>` : ''}
+            </div>
+          </article>`;
+      });
+    }
+
+    function cancelarAgendamento(id) {
+      const a = agendamentos.find(x => x.id === id);
+      if (!a) return;
+      a.status = "Cancelado";
+      a.observacoes = "Cancelado pelo professor.";
+      showToast("Agendamento cancelado nesta simulação.");
+      renderAgendamentos();
+      renderPainelCalendar();
+      atualizarMetricas();
+    }
+
+    function atualizarLabsPorCurso() {
+      const curso = document.getElementById("cursoSelect").value;
+      const info = cursos[curso];
+      document.getElementById("areaCursoInfo").value = info.ppc;
+      preencherSelect("disciplinaSelect", info.disciplinas);
+      const container = document.getElementById("labsVinculados");
+      container.innerHTML = "";
+      info.labs.forEach((lab, index) => {
+        container.innerHTML += `<label class="lab-option ${index === 0 ? 'selected' : ''}" onclick="selecionarLabOption(this)"><input type="radio" name="labEscolhido" value="${lab}" ${index === 0 ? 'checked' : ''}> <span><strong>${lab}</strong><br><small>Sugerido para a área do curso selecionado</small></span></label>`;
+      });
+      container.innerHTML += `<label class="lab-option" onclick="selecionarLabOption(this)"><input type="radio" name="labEscolhido" value="Outros laboratórios"> <span><strong>Outros laboratórios</strong><br><small>Usar quando o laboratório não estiver correlacionado ao PPC do curso</small></span></label>`;
+      document.getElementById("outrosLabsArea").classList.add("hidden");
+    }
+
+    function selecionarLabOption(label) {
+      document.querySelectorAll(".lab-option").forEach(l => l.classList.remove("selected"));
+      label.classList.add("selected");
+      const val = label.querySelector("input").value;
+      document.getElementById("outrosLabsArea").classList.toggle("hidden", val !== "Outros laboratórios");
+    }
+
+    function avancarParaCalendario() {
+      const labRadio = document.querySelector('input[name="labEscolhido"]:checked');
+      if (!labRadio) { showToast("Selecione um laboratório."); return; }
+      if (!document.getElementById("turmaSelect").value.trim()) { showToast("Digite a turma."); return; }
+      const lab = labRadio.value === "Outros laboratórios" ? document.getElementById("outroLabSelect").value : labRadio.value;
+      solicitacaoAtual = {
+        curso: document.getElementById("cursoSelect").value,
+        laboratorio: lab,
+        disciplina: document.getElementById("disciplinaSelect").value,
+        turma: document.getElementById("turmaSelect").value.trim()
+      };
+      showScreen("agendamentoCalendario");
+    }
+
+    function mudarMes(delta) {
+      const novaData = new Date(dataCalendario.getFullYear(), dataCalendario.getMonth() + delta, 1);
+      const limite = getLimiteAgendamento();
+      const inicioBase = getDataBaseAgendamento();
+      const primeiroMesBase = new Date(inicioBase.getFullYear(), inicioBase.getMonth(), 1);
+      const primeiroMesLimite = new Date(limite.getFullYear(), limite.getMonth(), 1);
+      if (novaData < primeiroMesBase || novaData > primeiroMesLimite) {
+        showToast("O agendamento só pode ser feito entre a data atual e até seis meses de antecedência.");
+        return;
+      }
+      dataCalendario = novaData;
+      renderMiniCalendar();
+    }
+
+    function renderMiniCalendar() {
+      document.getElementById("mesCalendario").textContent = dataCalendario.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+      const el = document.getElementById("miniCalendar");
+      el.innerHTML = "";
+      ["D", "S", "T", "Q", "Q", "S", "S"].forEach(d => el.innerHTML += `<div class="calendar-head">${d}</div>`);
+      const first = new Date(dataCalendario.getFullYear(), dataCalendario.getMonth(), 1);
+      const last = new Date(dataCalendario.getFullYear(), dataCalendario.getMonth() + 1, 0);
+      for (let i = 0; i < first.getDay(); i++) el.innerHTML += `<div></div>`;
+      for (let day = 1; day <= last.getDate(); day++) {
+        const date = new Date(dataCalendario.getFullYear(), dataCalendario.getMonth(), day);
+        const iso = toISO(date);
+        const dow = date.getDay();
+        const disabled = dow === 0 || !isDataAgendavel(date);
+        const hasBlocked = ocupadosSimulados[iso]?.length;
+        const title = dow === 0 ? "Domingo indisponível" : (!isDataAgendavel(date) ? "Agendamento permitido apenas até seis meses de antecedência e não permitido para datas passadas" : "Selecionar dia");
+        el.innerHTML += `<button title="${title}" class="mini-day ${disabled ? 'disabled' : ''} ${diaSelecionado === iso ? 'selected' : ''} ${hasBlocked ? 'has-blocked' : ''}" ${disabled ? 'disabled' : ''} onclick="selecionarDia('${iso}')">${day}</button>`;
+      }
+      if (!diaSelecionado) renderTurnos();
+    }
+
+    function selecionarDia(iso) {
+      diaSelecionado = iso;
+      renderMiniCalendar();
+      renderTurnos();
+    }
+
+    function renderTurnos() {
+      const container = document.getElementById("turnosContainer");
+      container.innerHTML = "";
+      if (!diaSelecionado) {
+        document.getElementById("diaSelecionadoLabel").textContent = "Selecione um dia";
+        return;
+      }
+      const date = fromISO(diaSelecionado);
+      document.getElementById("diaSelecionadoLabel").textContent = `Dia selecionado: ${formatDate(diaSelecionado)}`;
+      const isSaturday = date.getDay() === 6;
+      const ocupados = ocupadosSimulados[diaSelecionado] || [];
+      const turnosPermitidos = isSaturday ? ["Manhã"] : ["Manhã", "Vespertino", "Noturno"];
+      turnosPermitidos.forEach(turno => {
+        const disponiveis = turnos[turno].filter(h => !ocupados.includes(h));
+        if (!disponiveis.length) return;
+        const idTurno = turno.replace(/[^a-zA-Z]/g, "");
+        const htmlSlots = disponiveis.map(h => `<label class="time-slot"><input type="checkbox" data-slot="${h}" data-turno="${turno}" onchange="atualizarSelecaoHorario()"> ${h}</label>`).join("");
+        container.innerHTML += `
+          <div class="turno-box">
+            <div class="turno-head">
+              <h3>${turno}</h3>
+              <div class="actions-row">
+                <button class="btn btn-secondary" onclick="marcarTurno('${turno}', true)">Marcar todos</button>
+                <button class="btn btn-ghost" onclick="marcarTurno('${turno}', false)">Desmarcar todos</button>
+              </div>
+            </div>
+            <div class="time-grid" id="turno-${idTurno}">${htmlSlots}</div>
+          </div>`;
+      });
+      restaurarSelecaoDoDia();
+    }
+
+    function marcarTurno(turno, checked) {
+      document.querySelectorAll(`input[data-turno="${turno}"]`).forEach(cb => cb.checked = checked);
+      atualizarSelecaoHorario();
+    }
+
+    function atualizarSelecaoHorario() {
+      if (!diaSelecionado) return;
+      const slots = Array.from(document.querySelectorAll('input[data-slot]:checked')).map(cb => cb.dataset.slot);
+      selecao[diaSelecionado] = slots;
+    }
+
+    function restaurarSelecaoDoDia() {
+      const slots = selecao[diaSelecionado] || [];
+      document.querySelectorAll('input[data-slot]').forEach(cb => cb.checked = slots.includes(cb.dataset.slot));
+    }
+
+    function avancarParaMateriais() {
+      if (!diaSelecionado || !(selecao[diaSelecionado] || []).length) {
+        showToast("Selecione ao menos um horário disponível.");
+        return;
+      }
+      solicitacaoAtual.data = diaSelecionado;
+      solicitacaoAtual.horarios = selecao[diaSelecionado];
+      showScreen("agendamentoMateriais");
+    }
+
+    function toggleMateriais(show) {
+      document.getElementById("materiaisArea").classList.toggle("hidden", !show);
+      document.getElementById("btnMateriaisAvancar").textContent = show ? "Avançar para confirmação" : "Realizar solicitação";
+    }
+
+    function atualizarFormularioMaterial() {
+      const tipo = document.getElementById("tipoMaterial").value;
+      const catArea = document.getElementById("categoriaConsumivelArea");
+      const prepArea = document.getElementById("preparoArea");
+      const unidadeArea = document.getElementById("unidadeMedidaArea");
+      catArea.classList.toggle("hidden", tipo !== "Materiais consumíveis");
+      prepArea.classList.toggle("hidden", tipo !== "Materiais consumíveis");
+      unidadeArea.classList.toggle("hidden", tipo === "Equipamentos");
+      const chave = tipo === "Materiais consumíveis" ? document.getElementById("categoriaConsumivel").value : tipo;
+      preencherSelect("itemMaterial", materiaisPorTipo[chave]);
+      togglePreparoDetalhe();
+    }
+
+    function togglePreparoDetalhe() {
+      const show = document.getElementById("necessitaPreparo").value === "Sim" && document.getElementById("tipoMaterial").value === "Materiais consumíveis";
+      document.getElementById("detalhePreparoArea").classList.toggle("hidden", !show);
+    }
+
+    function adicionarMaterial() {
+      const tipo = document.getElementById("tipoMaterial").value;
+      const categoria = tipo === "Materiais consumíveis" ? document.getElementById("categoriaConsumivel").value : "";
+      const item = document.getElementById("itemMaterial").value;
+      const preparo = tipo === "Materiais consumíveis" ? document.getElementById("necessitaPreparo").value : "Não se aplica";
+      const detalhe = document.getElementById("detalhePreparo").value;
+      const quantidade = document.getElementById("quantidadeMaterial").value || "1";
+      const unidade = tipo === "Equipamentos" ? "unidade(s)" : document.getElementById("unidadeMedida").value;
+      const obs = document.getElementById("obsMaterial").value;
+      materiaisSelecionados.push({ tipo, categoria, item, quantidade, unidade, preparo, detalhe, obs });
+      document.getElementById("detalhePreparo").value = "";
+      document.getElementById("obsMaterial").value = "";
+      document.getElementById("quantidadeMaterial").value = "1";
+      renderMateriais();
+      showToast("Item adicionado.");
+    }
+
+    function renderMateriais() {
+      const el = document.getElementById("materiaisAdicionados");
+      if (!el) return;
+      if (!materiaisSelecionados.length) {
+        el.innerHTML = `<p style="color: var(--muted);">Nenhum item adicionado até o momento.</p>`;
+        return;
+      }
+      el.innerHTML = materiaisSelecionados.map((m, i) => `
+        <div class="material-item">
+          <div>
+            <strong>${m.item}</strong>
+            <p>${m.tipo}${m.categoria ? ' | ' + m.categoria : ''} | Quantidade: ${m.quantidade} ${m.unidade} | Preparo: ${m.preparo}</p>
+            ${m.detalhe ? `<p><strong>Detalhe:</strong> ${m.detalhe}</p>` : ''}
+            ${m.obs ? `<p><strong>Obs.:</strong> ${m.obs}</p>` : ''}
+          </div>
+          <button class="btn btn-danger" onclick="removerMaterial(${i})">Remover</button>
+        </div>`).join("");
+    }
+
+    function removerMaterial(i) {
+      materiaisSelecionados.splice(i, 1);
+      renderMateriais();
+    }
+
+    function avancarParaConfirmacao() {
+      const precisa = document.querySelector('input[name="precisaMateriais"]:checked')?.value === "sim";
+      solicitacaoAtual.precisaMateriais = precisa;
+      solicitacaoAtual.materiais = precisa ? materiaisSelecionados : [];
+      renderResumoConfirmacao();
+      showScreen("agendamentoConfirmacao");
+    }
+
+    function renderResumoConfirmacao() {
+      const resumo = document.getElementById("resumoAgendamento");
+      const materiaisTxt = solicitacaoAtual.precisaMateriais ? (solicitacaoAtual.materiais.map(m => m.item).join(", ") || "Não informado") : "Não necessita";
+      const items = [
+        ["Curso", solicitacaoAtual.curso],
+        ["Laboratório", solicitacaoAtual.laboratorio],
+        ["Disciplina", solicitacaoAtual.disciplina],
+        ["Turma", solicitacaoAtual.turma],
+        ["Data", formatDate(solicitacaoAtual.data)],
+        ["Horários", solicitacaoAtual.horarios.join(", ")],
+        ["Materiais", materiaisTxt],
+        ["Status previsto", solicitacaoAtual.precisaMateriais ? "Aguardando aprovação" : "Aprovado"],
+        ["Retorno", "E-mail após validação"]
+      ];
+      resumo.innerHTML = items.map(([k,v]) => `<div class="summary-item"><strong>${k}</strong><span>${v}</span></div>`).join("");
+    }
+
+    function finalizarSolicitacao() {
+      const novo = {
+        id: Math.max(...agendamentos.map(a => a.id), 0) + 1,
+        curso: solicitacaoAtual.curso,
+        laboratorio: solicitacaoAtual.laboratorio,
+        disciplina: solicitacaoAtual.disciplina,
+        turma: solicitacaoAtual.turma,
+        data: solicitacaoAtual.data,
+        horarios: solicitacaoAtual.horarios,
+        status: solicitacaoAtual.precisaMateriais ? "Aguardando aprovação" : "Aprovado",
+        materiais: solicitacaoAtual.precisaMateriais,
+        materiaisLista: solicitacaoAtual.materiais.map(m => m.item),
+        observacoes: document.getElementById("observacoesGerais").value || ""
+      };
+      agendamentos.push(novo);
+      showToast("Pedido de agendamento registrado.");
+      renderPainelCalendar();
+      atualizarMetricas();
+      renderAgendamentos();
+      showScreen("painelProfessor");
+    }
+
+    function atualizarFiltroPeriodoAgendamentos() {
+      const tipo = document.getElementById("tipoPeriodoAgendamento")?.value || "mesAtual";
+      const inicioArea = document.getElementById("dataInicioFiltroArea");
+      const fimArea = document.getElementById("dataFimFiltroArea");
+      if (!inicioArea || !fimArea) return;
+      const personalizado = tipo === "intervalo";
+      inicioArea.classList.toggle("hidden", !personalizado);
+      fimArea.classList.toggle("hidden", !personalizado);
+      if (tipo === "mesAtual") {
+        const hoje = getDataBaseAgendamento();
+        document.getElementById("dataInicioFiltro").value = toISO(new Date(hoje.getFullYear(), hoje.getMonth(), 1));
+        document.getElementById("dataFimFiltro").value = toISO(new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0));
+      }
+      if (tipo === "mesPainel") {
+        document.getElementById("dataInicioFiltro").value = toISO(new Date(dataPainel.getFullYear(), dataPainel.getMonth(), 1));
+        document.getElementById("dataFimFiltro").value = toISO(new Date(dataPainel.getFullYear(), dataPainel.getMonth() + 1, 0));
+      }
+      renderAgendamentos();
+    }
+
+    function limparPeriodoAgendamentos() {
+      document.getElementById("tipoPeriodoAgendamento").value = "todos";
+      document.getElementById("dataInicioFiltro").value = "";
+      document.getElementById("dataFimFiltro").value = "";
+      atualizarFiltroPeriodoAgendamentos();
+    }
+
+    function getPeriodoFiltroAgendamentos() {
+      const tipo = document.getElementById("tipoPeriodoAgendamento")?.value || "todos";
+      if (tipo === "todos") return { tipo, inicio: null, fim: null };
+      const inicio = document.getElementById("dataInicioFiltro").value;
+      const fim = document.getElementById("dataFimFiltro").value;
+      return { tipo, inicio, fim };
+    }
+
+    function filtrarPorPeriodo(data, periodo) {
+      if (!periodo || periodo.tipo === "todos") return true;
+      if (periodo.inicio && data < periodo.inicio) return false;
+      if (periodo.fim && data > periodo.fim) return false;
+      return true;
+    }
+
+    function renderPeriodoImpresso(periodo) {
+      const el = document.getElementById("periodoImpresso");
+      if (!el) return;
+      let texto = "Todas as datas";
+      if (periodo?.tipo !== "todos") texto = `${formatDate(periodo.inicio)} a ${formatDate(periodo.fim)}`;
+      el.innerHTML = `<h3>Visualização atual</h3><p><strong>Status:</strong> ${filtroAtual} | <strong>Período:</strong> ${texto}</p>`;
+    }
+
+    function getDataBaseAgendamento() {
+      return new Date(2026, 4, 7);
+    }
+
+    function getLimiteAgendamento() {
+      const base = getDataBaseAgendamento();
+      return new Date(base.getFullYear(), base.getMonth() + 6, base.getDate());
+    }
+
+    function isDataAgendavel(date) {
+      const base = getDataBaseAgendamento();
+      const limite = getLimiteAgendamento();
+      const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const b = new Date(base.getFullYear(), base.getMonth(), base.getDate());
+      const l = new Date(limite.getFullYear(), limite.getMonth(), limite.getDate());
+      return d >= b && d <= l;
+    }
+
+    function statusClass(status) {
+      if (status === "Aprovado") return "aprovado";
+      if (status === "Cancelado") return "cancelado";
+      return "aguardando";
+    }
+
+    function formatDate(value) {
+      if (!value) return "Não informada";
+      const [y,m,d] = value.split("-");
+      return `${d}/${m}/${y}`;
+    }
+
+    function toISO(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    }
+
+    function fromISO(iso) {
+      const [y,m,d] = iso.split("-").map(Number);
+      return new Date(y, m - 1, d);
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      toast.textContent = msg;
+      toast.style.display = "block";
+      clearTimeout(window.toastTimer);
+      window.toastTimer = setTimeout(() => toast.style.display = "none", 2800);
+    }
+
+    init();
+  </script></p></body></html>
